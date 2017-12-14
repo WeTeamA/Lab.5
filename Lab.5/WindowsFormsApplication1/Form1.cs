@@ -82,18 +82,18 @@ namespace WindowsFormsApplication1
             {
                 if (HasMoreData(out data_to_process))   
                 {
-                    for (int i = pos; i < pos + (data_to_process & -4); i += 4)
-                        summ += data[i] + (data[i + 1] << 8) + (data[i + 2] << 16) + (data[i + 3] << 24); // << оператор сдвига сдвигает на N битов влево
-                    switch (data_to_process & 3)    // 
+                    for (int i = pos; i < pos + (data_to_process & -4); i += 4) // делит по байтам, остаток просчитывается ниже где switch
+                        summ += (byte)(data[i] + (data[i + 1] << 8) + (data[i + 2] << 16) + (data[i + 3] << 24)); // << оператор сдвига сдвигает на N битов влево. Каждое слагаемое это байт
+                    switch (data_to_process & 3)    // смотрит какой остаток
                     {
                         case 1:
                             summ += data[pos + (data_to_process & -4)];
                             break;
                         case 2:
-                            summ += data[pos + (data_to_process & -4)] + (data[pos + (data_to_process & -4) + 1] << 8);
+                            summ +=(byte)( data[pos + (data_to_process & -4)] + (data[pos + (data_to_process & -4) + 1] << 8));
                             break;
                         case 3:
-                            summ += data[pos + (data_to_process & -4)] + (data[pos + (data_to_process & -4) + 1] << 8) + (data[pos + (data_to_process & -4) + 2] << 16);
+                            summ += (byte)(data[pos + (data_to_process & -4)] + (data[pos + (data_to_process & -4) + 1] << 8) + (data[pos + (data_to_process & -4) + 2] << 16));
                             break;
                     }
                     pos += data_to_process;
@@ -116,6 +116,7 @@ namespace WindowsFormsApplication1
 
         private void button2_Click(object sender, EventArgs e)
         {
+            this.Dispose();
             Application.Exit();
         }
     }
