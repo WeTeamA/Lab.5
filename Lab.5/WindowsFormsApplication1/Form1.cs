@@ -27,13 +27,12 @@ namespace WindowsFormsApplication1
 
         async private Task MakeAsyncRequest(string url, Label label)
         {
-            label.Text = "Идет процесс скачивания. Подождите!";
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
             request.Method = WebRequestMethods.Http.Get;
             request.Timeout = 20000;
             request.Proxy = null;
             Task<WebResponse> task = Task.Factory.FromAsync(request.BeginGetResponse, asyncResult => request.EndGetResponse(asyncResult), (object)null);
-
+            label.Text = "Идет процесс скачивания. Подождите!";
             await task.ContinueWith(t => {
                 Stream rs = t.Result.GetResponseStream();
                 data = new byte[t.Result.ContentLength];
@@ -41,7 +40,7 @@ namespace WindowsFormsApplication1
                 backProgress.Start();
                 while (count < t.Result.ContentLength)
                 {
-                    int read = rs.Read(data, count, (int)t.Result.ContentLength - count);
+                    int read = rs.Read(data, count, (int)t.Result.ContentLength - count);   // возвращает скорлько байт было прочитано
                     lock (data)
                         count += read;
                 }
@@ -83,7 +82,7 @@ namespace WindowsFormsApplication1
                 if (HasMoreData(out data_to_process))   
                 {
                     for (int i = pos; i < pos + (data_to_process & -4); i += 4) // делит по байтам, остаток просчитывается ниже где switch
-                        summ += (byte)(data[i] + (data[i + 1] << 8) + (data[i + 2] << 16) + (data[i + 3] << 24)); // << оператор сдвига сдвигает на N битов влево. Каждое слагаемое это байт
+                        summ += data[i] + (data[i + 1] << 8) + (data[i + 2] << 16) + (data[i + 3] << 24); // << оператор сдвига сдвигает на N битов влево. Каждое слагаемое это байт
                     switch (data_to_process & 3)    // смотрит какой остаток
                     {
                         case 1:
@@ -108,10 +107,27 @@ namespace WindowsFormsApplication1
 
         private async void button1_Click(object sender, EventArgs e)
         {
-            await MakeAsyncRequest(textBox1.Text, label2);
-            textBox3.Text = String.Format("0x{0:X}", summ);
-            textBox2.Text = summ.ToString();
+            label2.Text = "Загрузка";
+            textBox2.Clear();
+            textBox3.Clear();
+            progressBar.Value = 0;
+            pos = 0;
+            data = new byte[0];
+            summ = 0;
+            count = 0;
+            try
+            {
+                await MakeAsyncRequest(textBox1.Text, label2);
+                textBox3.Text = String.Format("0x{0:X}", summ);
+                textBox2.Text = summ.ToString();
 
+            }
+            catch
+            {
+                MessageBox.Show("Введите верный URL");
+
+            }
+            textBox1.Clear();
         }
 
         private void button2_Click(object sender, EventArgs e)

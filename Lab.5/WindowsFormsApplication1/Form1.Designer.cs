@@ -51,7 +51,7 @@
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(15, 130);
+            this.progressBar.Location = new System.Drawing.Point(15, 115);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(260, 23);
             this.progressBar.TabIndex = 2;
@@ -65,9 +65,9 @@
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(15, 218);
+            this.textBox2.Location = new System.Drawing.Point(11, 175);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(135, 20);
+            this.textBox2.Size = new System.Drawing.Size(127, 20);
             this.textBox2.TabIndex = 4;
             // 
             // label1
@@ -82,7 +82,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(12, 114);
+            this.label2.Location = new System.Drawing.Point(12, 99);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(57, 13);
             this.label2.TabIndex = 7;
@@ -91,7 +91,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(12, 202);
+            this.label3.Location = new System.Drawing.Point(66, 159);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(138, 13);
             this.label3.TabIndex = 8;
@@ -99,14 +99,14 @@
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(12, 170);
+            this.textBox3.Location = new System.Drawing.Point(147, 175);
             this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(135, 20);
+            this.textBox3.Size = new System.Drawing.Size(124, 20);
             this.textBox3.TabIndex = 9;
             // 
             // button2
             // 
-            this.button2.Location = new System.Drawing.Point(199, 214);
+            this.button2.Location = new System.Drawing.Point(200, 226);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(75, 23);
             this.button2.TabIndex = 10;
