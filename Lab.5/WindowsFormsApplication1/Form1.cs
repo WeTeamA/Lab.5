@@ -48,6 +48,7 @@ namespace WindowsFormsApplication1
             });
             label.Text = "Процесс завершен";
         }
+        #region Механизм блокировки
         bool ProgressFinished()
         {
             lock (data)
@@ -61,26 +62,29 @@ namespace WindowsFormsApplication1
             lock (data)
             {
                 if (count < data.Length)
-                    DataSize = (count - pos) & -4;
-                else
+                    DataSize = (count - pos) & -4; // побитово сравнивает с -4(1...100)доп.код | если сравнивать 4(0100) с 7(0111) будет 4(0100), если 7(0111) с 8(1000) будет 0(0000)
+                else                               // почему именно с -4 непонятно
                     DataSize = count - pos;
                 return DataSize > 0;
             }
         }
-        delegate void UpdateProgress();
-
+        #endregion
+        delegate void UpdateProgress(); 
         
 
-        private void ProcessData()
+
+
+
+        private void ProcessData()          // здесь и не понятно, откуда берутся цифры, откуда берется отрицательное число
         {
             int data_to_process;
-            while (!ProgressFinished())
+            while (!ProgressFinished())  // пока !(когда data свободна от другого потока, если pos >= длине data) | если pos меньше data.Lenght то идем в цикл
             {
-                if (HasMoreData(out data_to_process))
+                if (HasMoreData(out data_to_process))   
                 {
                     for (int i = pos; i < pos + (data_to_process & -4); i += 4)
-                        summ += data[i] + (data[i + 1] << 8) + (data[i + 2] << 16) + (data[i + 3] << 24);
-                    switch (data_to_process & 3)
+                        summ += data[i] + (data[i + 1] << 8) + (data[i + 2] << 16) + (data[i + 3] << 24); // << оператор сдвига сдвигает на N битов влево
+                    switch (data_to_process & 3)    // 
                     {
                         case 1:
                             summ += data[pos + (data_to_process & -4)];
@@ -107,6 +111,12 @@ namespace WindowsFormsApplication1
             await MakeAsyncRequest(textBox1.Text, label2);
             textBox3.Text = String.Format("0x{0:X}", summ);
             textBox2.Text = summ.ToString();
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
         }
     }
     }
