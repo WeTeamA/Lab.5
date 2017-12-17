@@ -19,10 +19,10 @@ namespace WindowsFormsApplication1
         {
             InitializeComponent();
         }
-        private byte[] data;
-        private volatile int pos;
-        private volatile int summ;
-        private volatile int count;
+        private byte[] Data;
+        private volatile int Pos;
+        private volatile int Summ;
+        private volatile int Count;
         private Thread backProgress;
 
         async private Task MakeAsyncRequest(string url, Label label)
@@ -34,47 +34,77 @@ namespace WindowsFormsApplication1
             Task<WebResponse> task = Task.Factory.FromAsync(request.BeginGetResponse, asyncResult => request.EndGetResponse(asyncResult), (object)null);
             label.Text = "Идет процесс скачивания. Подождите!";
             await task.ContinueWith(t => {
-                Stream rs = t.Result.GetResponseStream();
-                data = new byte[t.Result.ContentLength];
+                Stream stream = t.Result.GetResponseStream();
+                Data = new byte[t.Result.ContentLength];
                 backProgress = new Thread(ProcessData);
                 backProgress.Start();
-                while (count < t.Result.ContentLength)
+                while (Count < t.Result.ContentLength)
                 {
-                    int read = rs.Read(data, count, (int)t.Result.ContentLength - count);   // возвращает скорлько байт было прочитано
-                    lock (data)
-                        count += read;
+                    int read = stream.Read(Data, Count, (int)t.Result.ContentLength - Count);   // возвращает скорлько байт было прочитано
+                    lock (Data)
+                        Count += read;
                 }
             });
             label.Text = "Процесс завершен";
         }
         #region Механизм блокировки
-        bool ProgressFinished()
+        bool ProgressFinish()
         {
-            lock (data)
+            lock (Data)
             {
-                return pos >= data.Length;
+                return Pos >= Data.Length;
             }
         }
 
         bool HasMoreData(out int DataSize)
         {
-            lock (data)
+            lock (Data)
             {
-                if (count < data.Length)
-                    DataSize = (count - pos) & -4; // побитово сравнивает с -4(1...100)доп.код | если сравнивать 4(0100) с 7(0111) будет 4(0100), если 7(0111) с 8(1000) будет 0(0000)
+                if (Count < Data.Length)
+                    DataSize = (Count - Pos) & -4; // побитово сравнивает с -4(1...100)доп.код | если сравнивать 4(0100) с 7(0111) будет 4(0100), если 7(0111) с 8(1000) будет 0(0000)
                 else                               // почему именно с -4 непонятно
-                    DataSize = count - pos;
+                    DataSize = Count - Pos;
                 return DataSize > 0;
             }
         }
         #endregion
-        delegate void UpdateProgress(); 
+        delegate void UpdateProgress();
+
+
+
+
+        private void ProcessData()
+        {
+            int data_to_process;
+            while (!ProgressFinish())
+            {
+                if (HasMoreData(out data_to_process))
+                {
+                    for (int i = Pos; i < Pos + (data_to_process & -4); i += 4)
+                        Summ += Data[i] + (Data[i + 1] << 8) + (Data[i + 2] << 16) + (Data[i + 3] << 24);
+                    switch (data_to_process & 3)
+                    {
+                        case 1:
+                            Summ += Data[Pos + (data_to_process & -4)];
+                            break;
+                        case 2:
+                            Summ += Data[Pos + (data_to_process & -4)] + (Data[Pos + (data_to_process & -4) + 1] << 8);
+                            break;
+                        case 3:
+                            Summ += Data[Pos + (data_to_process & -4)] + (Data[Pos + (data_to_process & -4) + 1] << 8) + (Data[Pos + (data_to_process & -4) + 2] << 16);
+                            break;
+                    }
+                    Pos += data_to_process;
+                    progressBar.BeginInvoke(new UpdateProgress(() => progressBar.Value = (int)Math.Round(100.0 * Pos / (int)Data.Length)));
+                }
+                else
+                    Thread.Sleep(50);
+            }
         
 
 
 
-
-        private void ProcessData()          // здесь и не понятно, откуда берутся цифры, откуда берется отрицательное число
+      /*  private void ProcessData()          // здесь и не понятно, откуда берутся цифры, откуда берется отрицательное число
         {
             int data_to_process;
             while (!ProgressFinished())  // пока !(когда data свободна от другого потока, если pos >= длине data) | если pos меньше data.Lenght то идем в цикл
@@ -100,8 +130,8 @@ namespace WindowsFormsApplication1
                 }
                 else
                     Thread.Sleep(50);
-            }
-
+            }*/
+            
 
         }
 
@@ -111,15 +141,15 @@ namespace WindowsFormsApplication1
             textBox2.Clear();
             textBox3.Clear();
             progressBar.Value = 0;
-            pos = 0;
-            data = new byte[0];
-            summ = 0;
-            count = 0;
+            Pos = 0;
+            Data = new byte[0];
+            Summ = 0;
+            Count = 0;
             try
             {
                 await MakeAsyncRequest(textBox1.Text, label2);
-                textBox3.Text = String.Format("0x{0:X}", summ);
-                textBox2.Text = summ.ToString();
+                textBox3.Text = String.Format("0x{0:X}", Summ);
+                textBox2.Text = Summ.ToString();
 
             }
             catch
